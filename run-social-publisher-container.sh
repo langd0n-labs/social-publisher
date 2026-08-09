@@ -6,7 +6,7 @@ IMAGE_NAME="${SOCIAL_PUBLISHER_IMAGE:-localhost/thought-leadership-social:latest
 DATA_DIR="${SOCIAL_PUBLISHER_DATA_DIR:-$(dirname "${SCRIPT_DIR}")/content-workspace/social-exports}"
 
 exec podman run --rm \
-  --env-file "${HOME}/.config/thought-leadership/social-publisher.env" \
+  --env-file "${HOME}/.config/social-publisher/social-publisher.env" \
   -e BUFFER_API_KEY="${BUFFER_API_KEY}" \
   -e BSKY_APP_PASSWORD="${BSKY_APP_PASSWORD}" \
   -e MASTODON_ACCESS_TOKEN="${MASTODON_ACCESS_TOKEN}" \

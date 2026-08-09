@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "${SCRIPT_DIR}")"
 IMAGE_NAME="${SOCIAL_PUBLISHER_IMAGE:-localhost/thought-leadership-social:latest}"
-DATA_DIR="${PROJECT_ROOT}/content-workspace/social-exports"
+DATA_DIR="${SOCIAL_PUBLISHER_DATA_DIR:-${PROJECT_ROOT}/content-workspace/social-exports}"
 BWS_PROJECT_ID="${BWS_PROJECT_ID:-62c95cee-c160-4271-ae56-b497014884ed}"
 BWS_TOKEN_FILE="${BWS_TOKEN_FILE:-${HOME}/.config/bws-tokens/fishjump.token}"
 BWS_BIN="${BWS_BIN:-${HOME}/.local/bin/bws}"
