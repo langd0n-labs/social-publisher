@@ -36,7 +36,11 @@ Non-secret environment variables:
 - `BUFFER_MAX_SCHEDULED_PER_CHANNEL` — Buffer queue limit; defaults to `10`.
 - `SOCIAL_PUBLISHER_IMAGE` — container image name.
 - `SOCIAL_PUBLISHER_DATA_DIR` — directory mounted as `/data` by the container wrapper.
-- `BWS_TOKEN_FILE`, `BWS_BIN` — Bitwarden wrapper configuration.
+- `BWS_PROJECT_ID` — **required**, no default. Your Bitwarden Secrets Manager
+  project id.
+- `BWS_TOKEN_FILE` — path to the Bitwarden Secrets Manager access token;
+  defaults to `~/.config/bws-tokens/social-publisher.token`.
+- `BWS_BIN` — path to the `bws` binary; defaults to `~/.local/bin/bws`.
 
 Copy `social-publisher.env.example` to a local configuration file and fill in
 non-secret values. Use app passwords/tokens, never account passwords.

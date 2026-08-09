@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-IMAGE_NAME="${SOCIAL_PUBLISHER_IMAGE:-localhost/thought-leadership-social:latest}"
+IMAGE_NAME="${SOCIAL_PUBLISHER_IMAGE:-localhost/social-publisher:latest}"
 DATA_DIR="${SOCIAL_PUBLISHER_DATA_DIR:-$(dirname "${SCRIPT_DIR}")/content-workspace/social-exports}"
 
 exec podman run --rm \
