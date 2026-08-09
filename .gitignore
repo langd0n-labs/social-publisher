@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.env
+*-state.json
+content-workspace/
+social-exports/
+data/
+exports/

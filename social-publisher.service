@@ -1,0 +1,10 @@
+[Unit]
+Description=Publish scheduled social posts
+
+[Service]
+Type=oneshot
+EnvironmentFile=%h/.config/social-publisher/social-publisher.env
+Environment=PATH=%h/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/bin
+ExecStart=%h/social-publisher/run-social-publisher.sh
+StandardOutput=journal
+StandardError=journal
