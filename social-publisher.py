@@ -21,6 +21,9 @@ BUFFER_KEY = os.environ.get("BUFFER_API_KEY")
 DRY_RUN = os.environ.get("SOCIAL_DRY_RUN", "0") == "1"
 LATE_WINDOW = dt.timedelta(minutes=int(os.environ.get("SOCIAL_LATE_WINDOW_MINUTES", "15")))
 POST_DELAY_SECONDS = int(os.environ.get("SOCIAL_POST_DELAY_SECONDS", "30"))
+BUFFER_USE_QUEUE = os.environ.get("BUFFER_USE_QUEUE", "0").lower() in {"1", "true", "yes", "on"}
+BUFFER_MAX_SCHEDULED = int(os.environ.get("BUFFER_MAX_SCHEDULED_PER_CHANNEL", "10"))
+BUFFER_SCHEDULED_COUNTS = {}
 
 BUFFER_CHANNELS = {
     "linkedin": os.environ.get("BUFFER_CHANNEL_LINKEDIN"),
@@ -83,6 +86,26 @@ def buffer_request(query, variables):
     return payload["data"]
 
 
+def buffer_scheduled_count(channel_id):
+    if channel_id in BUFFER_SCHEDULED_COUNTS:
+        return BUFFER_SCHEDULED_COUNTS[channel_id]
+    orgs = buffer_request("query { account { organizations { id } } }", {})
+    organization_ids = [org["id"] for org in orgs["account"]["organizations"]]
+    count = 0
+    for organization_id in organization_ids:
+        result = buffer_request("""
+        query($organization: OrganizationId!, $channel: ChannelId!) {
+          posts(first: 100, input: {
+            organizationId: $organization
+            filter: { status: [scheduled], channelIds: [$channel] }
+          }) { edges { node { id } } }
+        }
+        """, {"organization": organization_id, "channel": channel_id})
+        count += len(result["posts"]["edges"])
+    BUFFER_SCHEDULED_COUNTS[channel_id] = count
+    return count
+
+
 def buffer_schedule(row, channel_id, immediate=False):
     query = """
     mutation CreatePost($input: CreatePostInput!) {
@@ -96,11 +119,11 @@ def buffer_schedule(row, channel_id, immediate=False):
         "text": tracked_text(row),
         "channelId": channel_id,
         "schedulingType": "automatic",
-        "mode": "shareNow" if immediate else "customScheduled",
+        "mode": "shareNow" if immediate else ("addToQueue" if BUFFER_USE_QUEUE else "customScheduled"),
     }}
     if row["channel"].lower() == "facebook":
         variables["input"]["metadata"] = {"facebook": {"type": "post"}}
-    if not immediate:
+    if not immediate and not BUFFER_USE_QUEUE:
         variables["input"]["dueAt"] = parse_when(row).astimezone(dt.timezone.utc).isoformat().replace("+00:00", "Z")
     return buffer_request(query, variables)
 
@@ -149,11 +172,19 @@ def main():
             if not args.now and when <= now:
                 print(f"SKIP {key}: Buffer schedule is in the past", file=sys.stderr)
                 continue
+            scheduled = 0
+            if not immediate:
+                scheduled = buffer_scheduled_count(BUFFER_CHANNELS[service])
+                if scheduled >= BUFFER_MAX_SCHEDULED:
+                    print(f"SKIP {key}: Buffer channel already has {scheduled} scheduled posts (limit {BUFFER_MAX_SCHEDULED})", file=sys.stderr)
+                    continue
             print(f"BUFFER {key} -> {when.isoformat()}")
             if not DRY_RUN:
                 result = buffer_schedule(row, BUFFER_CHANNELS[service], immediate=immediate)
                 state["rows"][key] = {"backend": "buffer", "result": result}
                 changed = True
+                if not immediate:
+                    BUFFER_SCHEDULED_COUNTS[BUFFER_CHANNELS[service]] = scheduled + 1
                 if POST_DELAY_SECONDS:
                     time.sleep(POST_DELAY_SECONDS)
         elif service in {"bluesky", "mastodon"}:

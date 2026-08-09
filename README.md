@@ -31,6 +31,8 @@ Non-secret environment variables:
 - `SOCIAL_DRY_RUN` — set to `1` for dry-run mode.
 - `SOCIAL_LATE_WINDOW_MINUTES` — late-post window; defaults to `15`.
 - `SOCIAL_POST_DELAY_SECONDS` — delay between posts; defaults to `30`.
+- `BUFFER_USE_QUEUE` — set to `1` to use Buffer's next available queue slot;
+  defaults to `0`, preserving explicit CSV schedule times.
 - `BUFFER_MAX_SCHEDULED_PER_CHANNEL` — Buffer queue limit; defaults to `10`.
 - `SOCIAL_PUBLISHER_IMAGE` — container image name.
 - `SOCIAL_PUBLISHER_DATA_DIR` — directory mounted as `/data` by the container wrapper.
@@ -52,9 +54,10 @@ date,time_et,slug,channel,text
 
 ## Buffer free-plan constraint
 
-Buffer's free plan allows at most 10 scheduled posts per channel. Treat this
-as a hard per-channel queue limit and never submit a batch exceeding 10 for
-LinkedIn, X, or Facebook.
+Buffer's free plan allows at most 10 scheduled posts per channel. The publisher
+counts existing scheduled posts before each submission and skips rows that
+would exceed `BUFFER_MAX_SCHEDULED_PER_CHANNEL`, for both explicit-time and
+queue-mode submissions.
 
 ## Systemd deployment
 
