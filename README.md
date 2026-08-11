@@ -77,3 +77,15 @@ intentional manual release.
 
 This was built for the author's thought-leadership publishing workflow, but is
 intended to be reusable for any content schedule.
+
+## Acknowledgments
+
+Direct-publish support is built on these open-source projects:
+
+- [atproto](https://github.com/MarshalX/atproto) (MarshalX) — Bluesky/AT
+  Protocol client.
+- [Mastodon.py](https://github.com/halcy/Mastodon.py) (halcy) — Mastodon API
+  client.
+
+LinkedIn/X/Facebook scheduling goes through the [Buffer](https://buffer.com)
+API rather than a direct client library.
